@@ -1,6 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useDispatch } from 'react-redux';
 import './ProductList.css'
 import CartItem from './CartItem';
+import { addItem } from './CartSlice';
+
 function ProductList({ onHomeClick }) {
     const [showCart, setShowCart] = useState(false);
     const [showPlants, setShowPlants] = useState(false); // State to control the visibility of the About Us page
@@ -234,17 +237,23 @@ function ProductList({ onHomeClick }) {
         textDecoration: 'none',
     }
 
+    const dispatch = useDispatch();
+
     const handleHomeClick = (e) => {
         e.preventDefault();
         onHomeClick();
     };
-    const handleAddToCart = (product) => {
-    dispatch(addItem(product)); // Dispatch the action to add the product to the cart (Redux action)
 
-    setAddedToCart((prevState) => ({ // Update the local state to reflect that the product has been added
-        ...prevState, // Spread the previous state to retain existing entries
-        [product.name]: true, // Set the current product's name as a key with value 'true' to mark it as added
-    }));
+    const handleAddToCart = (product) => {
+        if (addedToCart[product.name]) {
+          return;
+        }
+
+        dispatch(addItem(product));
+        setAddedToCart((prevState) => ({
+            ...prevState,
+            [product.name]: true,
+        }));
     };
 
     const handleCartClick = (e) => {
@@ -291,22 +300,22 @@ function ProductList({ onHomeClick }) {
                         <div className="product-list"> {/* Container for the list of plant cards */}
                         {category.plants.map((plant, plantIndex) => ( // Loop through each plant in the current category
                         <div className="product-card" key={plantIndex}> {/* Unique key for each plant card */}
+                            <div className="product-title">{plant.name}</div>
                             <img 
                              className="product-image" 
                             src={plant.image} // Display the plant image
                             alt={plant.name} // Alt text for accessibility
                                 />
-                            <div className="product-title">{plant.name}</div> {/* Display plant name */}
-                            {/* Display other plant details like description and cost */}
-                            <div className="product-description">{plant.description}</div> {/* Display plant description */}
-                            <div className="product-cost">${plant.cost}</div> {/* Display plant cost */}
+                            <div className="product-price">{plant.cost}</div>
+                            <div className="product-description">{plant.description}</div>
                             <button
-                                className="product-button"
+                                className={`product-button ${addedToCart[plant.name] ? 'added-to-cart' : ''}`}
+                                disabled={!!addedToCart[plant.name]}
                                 onClick={() => handleAddToCart(plant)} // Handle adding plant to cart
                             >
-                                Add to Cart
+                                {addedToCart[plant.name] ? 'Added to Cart' : 'Add to Cart'}
                             </button>
-                            </div>
+                        </div>
                         ))}
                         </div>
                     </div>
